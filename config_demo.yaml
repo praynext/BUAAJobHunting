@@ -1,0 +1,20 @@
+PostgresHost:                                               # Postgres地址
+PostgresPort:                                               # Postgres端口
+PostgresUser:                                               # Postgres用户名
+PostgresPassword:                                           # Postgres密码
+PostgresDatabase:                                           # Postgres数据库
+
+RedisHost:                                                  # Redis地址
+RedisPort:                                                  # Redis端口
+RedisPassword:                                              # Redis密码
+
+SMTPHost:                                                   # SMTP地址
+SMTPPort:                                                   # SMTP端口
+SMTPUser:                                                   # SMTP用户名
+SMTPPassword:                                               # SMTP密码
+
+LogPath: './log/'                                           # 日志路径
+DocsPath: ''                                                # 文档路径
+
+
+
