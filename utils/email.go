@@ -2,6 +2,7 @@ package utils
 
 import (
 	"BUAAJobHunting/global"
+	"crypto/tls"
 	"fmt"
 	"github.com/jordan-wright/email"
 	"math/rand"
@@ -38,6 +39,6 @@ func SendEmailValidate(recipient string) (string, error) {
 	</div>
 	`, recipient, time.Now().Format("2006-01-02 15:04:05"), vCode)
 	e.HTML = []byte(content)
-	err := e.Send("smtp.163.com:25", global.SMTPAuth)
+	err := e.SendWithTLS("smtp.163.com:465", global.SMTPAuth, &tls.Config{ServerName: "smtp.163.com"})
 	return vCode, err
 }
