@@ -13,6 +13,7 @@ import (
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"github.com/yanyiwu/gojieba"
 	"io"
 	"log"
 	"net/smtp"
@@ -81,6 +82,7 @@ func LoadConfig() {
 // @name X-Token
 func main() {
 	LoadConfig()
+	global.Parser = gojieba.NewJieba()
 	global.Router = gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true

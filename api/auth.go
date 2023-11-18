@@ -47,7 +47,7 @@ type ResetPwdRequest struct {
 // @Description 用户登录
 // @Tags Authentication
 // @Param info body LoginRequest true "用户登陆信息"
-// @Success 200 {object} LoginResponse "用户登陆反馈"
+// @Success 200 {object} LoginResponse 用户登陆反馈
 // @Failure 400 {string} string "请求解析失败"/"密码错误"
 // @Failure 404 {string} string "用户名不存在"
 // @Failure default {string} string "服务器错误"

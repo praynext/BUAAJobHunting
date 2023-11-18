@@ -1,6 +1,8 @@
 package api
 
-import "BUAAJobHunting/global"
+import (
+	"BUAAJobHunting/global"
+)
 
 func InitRoute() {
 	global.Router.GET("/ping", Ping)
@@ -10,4 +12,8 @@ func InitRoute() {
 	global.Router.POST("/change_password", ChangePassword)
 	global.Router.POST("/reset_password", ResetPassword)
 	global.Router.POST("/send_email", SendEmail)
+
+	bossData := global.Router.Group("/boss_data")
+	bossData.GET("/company", SearchBossDataByCompany)
+	bossData.GET("/job", SearchBossDataByJob)
 }

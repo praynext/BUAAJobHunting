@@ -3,6 +3,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 COMMENT ON SCHEMA public IS 'standard public schema';
 SET search_path = "public";
 SET TIME ZONE 'PRC';
+create extension pg_trgm;
 
 create table if not exists "user"
 (
@@ -17,7 +18,7 @@ create table if not exists "user"
 alter table "user"
     owner to postgres;
 
-create table if not exists "boss_data"
+create table if not exists boss_data
 (
     id               serial primary key,
     job_name         varchar(255) not null,
@@ -32,8 +33,11 @@ create table if not exists "boss_data"
     job_need         varchar(255) not null,
     job_desc         varchar(255) not null,
     job_url          varchar(255) not null,
-    created_at       timestamp    not null
+    created_at       timestamp    not null,
+    tokens           tsvector     not null
 );
+create index boss_company_idx on boss_data using GIN (company_name gin_trgm_ops);
+create index tokens_company_idx on boss_data using GIN (tokens);
 
-alter table "boss_data"
+alter table boss_data
     owner to postgres;
