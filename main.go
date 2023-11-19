@@ -18,6 +18,7 @@ import (
 	"log"
 	"net/smtp"
 	"os"
+	"path"
 )
 
 func InitSql(Host string, Port int, User string, Password string, Database string) {
@@ -56,6 +57,15 @@ func InitSMTP(Host string, User string, Password string) {
 	global.SMTPAuth = smtp.PlainAuth("", User, Password, Host)
 }
 
+func InitParser(Path string) {
+	jiebaPath := path.Join(Path, "jieba.dict.utf8")
+	hmmPath := path.Join(Path, "hmm_model.utf8")
+	userPath := path.Join(Path, "user.dict.utf8")
+	idfPath := path.Join(Path, "idf.utf8")
+	stopPath := path.Join(Path, "stop_words.utf8")
+	global.Parser = gojieba.NewJieba(jiebaPath, hmmPath, userPath, idfPath, stopPath)
+}
+
 func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -71,6 +81,7 @@ func LoadConfig() {
 		viper.GetString("RedisPassword"))
 	InitLog(viper.GetString("LogPath"))
 	InitSMTP(viper.GetString("SMTPHost"), viper.GetString("SMTPUser"), viper.GetString("SMTPPassword"))
+	InitParser(viper.GetString("DictPath"))
 	docs.SwaggerInfo.BasePath = viper.GetString("DocsPath")
 }
 
@@ -82,7 +93,6 @@ func LoadConfig() {
 // @name X-Token
 func main() {
 	LoadConfig()
-	global.Parser = gojieba.NewJieba()
 	global.Router = gin.Default()
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowAllOrigins = true
