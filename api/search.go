@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type JobResponse struct {
+type BossJobResponse struct {
 	JobName        string    `json:"job_name"`
 	JobArea        string    `json:"job_area"`
 	Salary         string    `json:"salary"`
@@ -26,8 +26,8 @@ type JobResponse struct {
 }
 
 type AllBossData struct {
-	TotalCount int           `json:"total_count"`
-	Jobs       []JobResponse `json:"jobs"`
+	TotalCount int               `json:"total_count"`
+	Jobs       []BossJobResponse `json:"jobs"`
 }
 
 // SearchBossDataByCompany godoc
@@ -57,9 +57,9 @@ func SearchBossDataByCompany(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	var jobs []JobResponse
+	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
-		jobs = append(jobs, JobResponse{
+		jobs = append(jobs, BossJobResponse{
 			JobName:        bossJob.JobName,
 			JobArea:        bossJob.JobArea,
 			Salary:         bossJob.Salary,
@@ -109,9 +109,9 @@ func SearchBossDataByJob(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	var jobs []JobResponse
+	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
-		jobs = append(jobs, JobResponse{
+		jobs = append(jobs, BossJobResponse{
 			JobName:        bossJob.JobName,
 			JobArea:        bossJob.JobArea,
 			Salary:         bossJob.Salary,
@@ -128,6 +128,115 @@ func SearchBossDataByJob(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+type TC58JobResponse struct {
+	JobName     string    `json:"job_name"`
+	JobArea     string    `json:"job_area"`
+	Salary      string    `json:"salary"`
+	JobWel      []string  `json:"job_wel"`
+	CompanyName string    `json:"company_name"`
+	JobNeed     []string  `json:"job_need"`
+	JobURL      string    `json:"job_url"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type All58Data struct {
+	TotalCount int               `json:"total_count"`
+	Jobs       []TC58JobResponse `json:"jobs"`
+}
+
+// Search58DataByCompany godoc
+// @Schemes http
+// @Description 根据公司搜索58同城数据
+// @Tags Search
+// @Param info query string true "用户搜索信息"
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} All58Data "58同城数据"
+// @Failure default {string} string "服务器错误"
+// @Router /58_data/company [get]
+// @Security ApiKeyAuth
+func Search58DataByCompany(c *gin.Context) {
+	sqlString := `SELECT * FROM "58_data" WHERE similarity($1, company_name) > 0.1 
+        AND job_area LIKE $2 ORDER BY similarity($3, company_name) DESC, created_at DESC`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var tc58Jobs []model.TC58Job
+	if err := global.Database.Select(&tc58Jobs, sqlString, c.Query("info"),
+		"%"+c.Query("area")+"%", c.Query("info")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []TC58JobResponse
+	for _, tc58Job := range tc58Jobs {
+		jobs = append(jobs, TC58JobResponse{
+			JobName:     tc58Job.JobName,
+			JobArea:     tc58Job.JobArea,
+			Salary:      tc58Job.Salary,
+			JobWel:      strings.Split(tc58Job.JobWel, " "),
+			CompanyName: tc58Job.CompanyName,
+			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
+			JobURL:      tc58Job.JobURL,
+			CreatedAt:   tc58Job.CreatedAt,
+		})
+	}
+	c.JSON(http.StatusOK, All58Data{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// Search58DataByJob godoc
+// @Schemes http
+// @Description 根据工作搜索58同城数据
+// @Tags Search
+// @Param info query string true "用户搜索信息"
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} All58Data "58同城数据"
+// @Failure default {string} string "服务器错误"
+// @Router /58_data/job [get]
+// @Security ApiKeyAuth
+func Search58DataByJob(c *gin.Context) {
+	sqlString := `SELECT * FROM "58_data" WHERE tokens @@ to_tsquery('simple', $1) AND job_area 
+    	LIKE $2 ORDER BY ts_rank(tokens, to_tsquery('simple', $3)) DESC, created_at DESC`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	queryWords := global.Parser.Cut(c.Query("info"), true)
+	var tc58Jobs []model.TC58Job
+	if err := global.Database.Select(&tc58Jobs, sqlString, strings.Join(queryWords, " | "),
+		"%"+c.Query("area")+"%", strings.Join(queryWords, " | ")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []TC58JobResponse
+	for _, tc58Job := range tc58Jobs {
+		jobs = append(jobs, TC58JobResponse{
+			JobName:     tc58Job.JobName,
+			JobArea:     tc58Job.JobArea,
+			Salary:      tc58Job.Salary,
+			JobWel:      strings.Split(tc58Job.JobWel, " "),
+			CompanyName: tc58Job.CompanyName,
+			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
+			JobURL:      tc58Job.JobURL,
+			CreatedAt:   tc58Job.CreatedAt,
+		})
+	}
+	c.JSON(http.StatusOK, All58Data{
 		TotalCount: len(jobs),
 		Jobs:       jobs,
 	})

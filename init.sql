@@ -37,7 +37,26 @@ create table if not exists boss_data
     tokens           tsvector     not null
 );
 create index boss_company_idx on boss_data using GIN (company_name gin_trgm_ops);
-create index tokens_company_idx on boss_data using GIN (tokens);
+create index boss_tokens_idx on boss_data using GIN (tokens);
 
 alter table boss_data
+    owner to postgres;
+
+create table if not exists "58_data"
+(
+    id           serial primary key,
+    job_name     varchar(255)  not null,
+    job_area     varchar(255)  not null,
+    salary       varchar(255)  not null,
+    job_wel      varchar(255)  not null,
+    company_name varchar(255)  not null,
+    job_need     varchar(255)  not null,
+    job_url      varchar(2048) not null,
+    created_at   timestamp     not null,
+    tokens       tsvector      not null
+);
+create index "58_company_idx" on "58_data" using GIN (company_name gin_trgm_ops);
+create index "58_tokens_idx" on "58_data" using GIN (tokens);
+
+alter table "58_data"
     owner to postgres;

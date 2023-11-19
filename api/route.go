@@ -16,4 +16,8 @@ func InitRoute() {
 	bossData := global.Router.Group("/boss_data")
 	bossData.GET("/company", SearchBossDataByCompany)
 	bossData.GET("/job", SearchBossDataByJob)
+
+	tc58Data := global.Router.Group("/58_data")
+	tc58Data.GET("/company", Search58DataByCompany)
+	tc58Data.GET("/job", Search58DataByJob)
 }
