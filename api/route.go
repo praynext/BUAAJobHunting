@@ -20,4 +20,7 @@ func InitRoute() {
 	tc58Data := global.Router.Group("/58_data")
 	tc58Data.GET("/company", Search58DataByCompany)
 	tc58Data.GET("/job", Search58DataByJob)
+
+	chat := global.Router.Group("/chat")
+	chat.GET("/ws", ServeWebsocket)
 }

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
@@ -66,6 +67,18 @@ func InitParser(Path string) {
 	global.Parser = gojieba.NewJieba(jiebaPath, hmmPath, userPath, idfPath, stopPath)
 }
 
+func InitDispatcher() {
+	global.Dispatcher = global.NewHub()
+	go global.Dispatcher.Run()
+}
+
+func InitUpGrader() {
+	global.UpGrader = &websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
+}
+
 func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -82,6 +95,8 @@ func LoadConfig() {
 	InitLog(viper.GetString("LogPath"))
 	InitSMTP(viper.GetString("SMTPHost"), viper.GetString("SMTPUser"), viper.GetString("SMTPPassword"))
 	InitParser(viper.GetString("DictPath"))
+	InitDispatcher()
+	InitUpGrader()
 	docs.SwaggerInfo.BasePath = viper.GetString("DocsPath")
 }
 
@@ -98,6 +113,7 @@ func main() {
 	corsConfig.AllowAllOrigins = true
 	corsConfig.AllowHeaders = append(corsConfig.AllowHeaders, global.TokenHeader)
 	corsConfig.ExposeHeaders = append(corsConfig.ExposeHeaders, "Date")
+	corsConfig.AllowWebSockets = true
 
 	global.Router.Use(cors.New(corsConfig))
 	global.Router.Use(global.Authenticate)
