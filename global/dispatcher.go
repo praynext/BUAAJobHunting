@@ -2,7 +2,9 @@ package global
 
 import (
 	"encoding/json"
+	"log"
 	"sync"
+	"time"
 )
 
 type Hub struct {
@@ -54,7 +56,19 @@ func (h *Hub) Dispatch(userId int, message []byte) {
 	if client, ok := h.Clients[msg.To]; ok {
 		select {
 		case client.Send <- message:
+			// Save msg into database, setting has_sent true
+			_, err := Database.Exec(`INSERT INTO "message" (from, to, message, has_sent, time) VALUES ($1, $2, $3, true, $4)`, msg.From, msg.To, msg.Msg, time.Now())
+			if err != nil {
+				log.Fatalf("Save message into database failed: %v", err)
+				return
+			}
 		default:
+			// Save msg into database, setting has_sent false
+			_, err := Database.Exec(`INSERT INTO "message" (from, to, message, has_sent, time) VALUES ($1, $2, $3, false, $4)`, msg.From, msg.To, msg.Msg, time.Now())
+			if err != nil {
+				log.Fatalf("Save message into database failed: %v", err)
+				return
+			}
 			h.Unregister <- client
 		}
 	}

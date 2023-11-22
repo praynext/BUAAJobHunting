@@ -60,3 +60,42 @@ create index "58_tokens_idx" on "58_data" using GIN (tokens);
 
 alter table "58_data"
     owner to postgres;
+
+create table message
+(
+    id       serial            primary key,
+    "from"   integer              not null,
+    "to"     integer              not null,
+    message  text,
+    time     timestamp            not null,
+    has_sent boolean default true not null
+);
+
+alter table message
+    owner to postgres;
+
+create table user_favorite_58_data
+(
+    id      serial
+        primary key,
+    user_id integer not null,
+    data_id integer not null,
+    time    timestamp default now()
+);
+
+alter table user_favorite_58_data
+    owner to postgres;
+
+
+create table user_favorite_boss_data
+(
+    id      serial
+        primary key,
+    user_id integer not null,
+    data_id integer not null,
+    time    timestamp default now()
+);
+
+alter table user_favorite_boss_data
+    owner to postgres;
+
