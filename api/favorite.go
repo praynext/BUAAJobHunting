@@ -4,6 +4,7 @@ import (
 	"BUAAJobHunting/global"
 	"BUAAJobHunting/model"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -17,12 +18,12 @@ import (
 // @Failure default {string} string "服务器错误"
 // @Router /58_data/favorite [post]
 func UserFavorite58Data(c *gin.Context) {
-	sqlString := "INSERT INTO user_favorite_58_data (user_id, data_id, time) VALUES ($1, $2, $3)"
+	sqlString := `INSERT INTO user_favorite_58_data (user_id, data_id, created_at) VALUES ($1, $2, $3)`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id"), time.Now().Local()); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	c.String(200, "收藏成功")
+	c.String(http.StatusOK, "收藏成功")
 }
 
 // UserFavoriteBossData godoc
@@ -34,12 +35,12 @@ func UserFavorite58Data(c *gin.Context) {
 // @Failure default {string} string "服务器错误"
 // @Router /boss_data/favorite [post]
 func UserFavoriteBossData(c *gin.Context) {
-	sqlString := "INSERT INTO user_favorite_boss_data (user_id, data_id, time) VALUES ($1, $2, $3)"
+	sqlString := `INSERT INTO user_favorite_boss_data (user_id, data_id, created_at) VALUES ($1, $2, $3)`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id"), time.Now().Local()); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	c.String(200, "收藏成功")
+	c.String(http.StatusOK, "收藏成功")
 }
 
 // UserCancelFavorite58Data godoc
@@ -51,12 +52,12 @@ func UserFavoriteBossData(c *gin.Context) {
 // @Failure default {string} string "服务器错误"
 // @Router /58_data/favorite [delete]
 func UserCancelFavorite58Data(c *gin.Context) {
-	sqlString := "DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2"
+	sqlString := `DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	c.String(200, "取消收藏成功")
+	c.String(http.StatusOK, "取消收藏成功")
 }
 
 // UserCancelFavoriteBossData godoc
@@ -66,14 +67,14 @@ func UserCancelFavorite58Data(c *gin.Context) {
 // @Param id query int true "Boss直聘数据ID"
 // @Success 200 {string} string "取消收藏成功"
 // @Failure default {string} string "服务器错误"
-// @Router /58_data/favorite [delete]
+// @Router /boss_data/favorite [delete]
 func UserCancelFavoriteBossData(c *gin.Context) {
-	sqlString := "DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2"
+	sqlString := `DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
-	c.String(200, "取消收藏成功")
+	c.String(http.StatusOK, "取消收藏成功")
 }
 
 // UserGetFavorite58Data godoc
@@ -100,12 +101,13 @@ func UserGetFavorite58Data(c *gin.Context) {
 	}
 	var tc58Jobs []model.TC58Job
 	if err := global.Database.Select(&tc58Jobs, sqlString, c.GetInt("UserId")); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
 		jobs = append(jobs, TC58JobResponse{
+			JobId:       tc58Job.ID,
 			JobName:     tc58Job.JobName,
 			JobArea:     tc58Job.JobArea,
 			Salary:      tc58Job.Salary,
@@ -114,9 +116,10 @@ func UserGetFavorite58Data(c *gin.Context) {
 			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
+			IsFull:      tc58Job.IsFull,
 		})
 	}
-	c.JSON(200, All58Data{
+	c.JSON(http.StatusOK, All58Data{
 		TotalCount: len(jobs),
 		Jobs:       jobs,
 	})
@@ -146,12 +149,13 @@ func UserGetFavoriteBossData(c *gin.Context) {
 	}
 	var bossJobs []model.BossJob
 	if err := global.Database.Select(&bossJobs, sqlString, c.GetInt("UserId")); err != nil {
-		c.String(500, "服务器错误")
+		c.String(http.StatusInternalServerError, "服务器错误")
 		return
 	}
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
 		jobs = append(jobs, BossJobResponse{
+			JobId:          bossJob.ID,
 			JobName:        bossJob.JobName,
 			JobArea:        bossJob.JobArea,
 			Salary:         bossJob.Salary,
@@ -165,9 +169,10 @@ func UserGetFavoriteBossData(c *gin.Context) {
 			JobDesc:        bossJob.JobDesc,
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
+			IsFull:         bossJob.IsFull,
 		})
 	}
-	c.JSON(200, AllBossData{
+	c.JSON(http.StatusOK, AllBossData{
 		TotalCount: len(jobs),
 		Jobs:       jobs,
 	})

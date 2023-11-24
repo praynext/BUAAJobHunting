@@ -15,9 +15,10 @@ type Hub struct {
 }
 
 type Message struct {
-	From int    `json:"from"`
-	To   int    `json:"to"`
-	Msg  string `json:"msg"`
+	From int       `json:"from"`
+	To   int       `json:"to"`
+	Msg  string    `json:"msg"`
+	Time time.Time `json:"time"`
 }
 
 func NewHub() *Hub {
@@ -52,24 +53,37 @@ func (h *Hub) Dispatch(userId int, message []byte) {
 	if err := json.Unmarshal(message, &msg); err != nil || msg.From != userId {
 		return
 	}
+	msg.Time = time.Now()
+	byteMsg, err := json.Marshal(msg)
+	if err != nil {
+		log.Fatalf("Marshal messages failed: %v", err)
+		return
+	}
 	h.Locker.RLock()
 	if client, ok := h.Clients[msg.To]; ok {
 		select {
-		case client.Send <- message:
+		case client.Send <- byteMsg:
 			// Save msg into database, setting has_sent true
-			_, err := Database.Exec(`INSERT INTO "message" (from, to, message, has_sent, time) VALUES ($1, $2, $3, true, $4)`, msg.From, msg.To, msg.Msg, time.Now())
+			_, err := Database.Exec(`INSERT INTO "message" ("from", "to", message, has_sent, time) VALUES ($1, $2, $3, true, $4)`, msg.From, msg.To, msg.Msg, msg.Time)
 			if err != nil {
 				log.Fatalf("Save message into database failed: %v", err)
 				return
 			}
 		default:
 			// Save msg into database, setting has_sent false
-			_, err := Database.Exec(`INSERT INTO "message" (from, to, message, has_sent, time) VALUES ($1, $2, $3, false, $4)`, msg.From, msg.To, msg.Msg, time.Now())
+			_, err := Database.Exec(`INSERT INTO "message" ("from", "to", message, has_sent, time) VALUES ($1, $2, $3, false, $4)`, msg.From, msg.To, msg.Msg, msg.Time)
 			if err != nil {
 				log.Fatalf("Save message into database failed: %v", err)
 				return
 			}
 			h.Unregister <- client
+		}
+	} else {
+		// Save msg into database, setting has_sent false
+		_, err := Database.Exec(`INSERT INTO "message" ("from", "to", message, has_sent, time) VALUES ($1, $2, $3, false, $4)`, msg.From, msg.To, msg.Msg, msg.Time)
+		if err != nil {
+			log.Fatalf("Save message into database failed: %v", err)
+			return
 		}
 	}
 	h.Locker.RUnlock()

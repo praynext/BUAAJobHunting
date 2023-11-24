@@ -12,5 +12,6 @@ type TC58Job struct {
 	JobNeed     string    `json:"job_need" db:"job_need"`
 	JobURL      string    `json:"job_url" db:"job_url"`
 	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	IsFull      bool      `json:"is_full" db:"is_full"`
 	Tokens      string    `json:"tokens" db:"tokens"`
 }

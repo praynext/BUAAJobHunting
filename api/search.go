@@ -10,6 +10,7 @@ import (
 )
 
 type BossJobResponse struct {
+	JobId          int       `json:"job_id"`
 	JobName        string    `json:"job_name"`
 	JobArea        string    `json:"job_area"`
 	Salary         string    `json:"salary"`
@@ -23,6 +24,7 @@ type BossJobResponse struct {
 	JobDesc        string    `json:"job_desc"`
 	JobURL         string    `json:"job_url"`
 	CreatedAt      time.Time `json:"created_at"`
+	IsFull         bool      `json:"is_full"`
 }
 
 type AllBossData struct {
@@ -60,6 +62,7 @@ func SearchBossDataByCompany(c *gin.Context) {
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
 		jobs = append(jobs, BossJobResponse{
+			JobId:          bossJob.ID,
 			JobName:        bossJob.JobName,
 			JobArea:        bossJob.JobArea,
 			Salary:         bossJob.Salary,
@@ -73,6 +76,7 @@ func SearchBossDataByCompany(c *gin.Context) {
 			JobDesc:        bossJob.JobDesc,
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
+			IsFull:         bossJob.IsFull,
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
@@ -112,6 +116,7 @@ func SearchBossDataByJob(c *gin.Context) {
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
 		jobs = append(jobs, BossJobResponse{
+			JobId:          bossJob.ID,
 			JobName:        bossJob.JobName,
 			JobArea:        bossJob.JobArea,
 			Salary:         bossJob.Salary,
@@ -125,6 +130,7 @@ func SearchBossDataByJob(c *gin.Context) {
 			JobDesc:        bossJob.JobDesc,
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
+			IsFull:         bossJob.IsFull,
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
@@ -134,6 +140,7 @@ func SearchBossDataByJob(c *gin.Context) {
 }
 
 type TC58JobResponse struct {
+	JobId       int       `json:"job_id"`
 	JobName     string    `json:"job_name"`
 	JobArea     string    `json:"job_area"`
 	Salary      string    `json:"salary"`
@@ -142,6 +149,7 @@ type TC58JobResponse struct {
 	JobNeed     []string  `json:"job_need"`
 	JobURL      string    `json:"job_url"`
 	CreatedAt   time.Time `json:"created_at"`
+	IsFull      bool      `json:"is_full"`
 }
 
 type All58Data struct {
@@ -179,6 +187,7 @@ func Search58DataByCompany(c *gin.Context) {
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
 		jobs = append(jobs, TC58JobResponse{
+			JobId:       tc58Job.ID,
 			JobName:     tc58Job.JobName,
 			JobArea:     tc58Job.JobArea,
 			Salary:      tc58Job.Salary,
@@ -187,6 +196,7 @@ func Search58DataByCompany(c *gin.Context) {
 			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
+			IsFull:      tc58Job.IsFull,
 		})
 	}
 	c.JSON(http.StatusOK, All58Data{
@@ -226,6 +236,7 @@ func Search58DataByJob(c *gin.Context) {
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
 		jobs = append(jobs, TC58JobResponse{
+			JobId:       tc58Job.ID,
 			JobName:     tc58Job.JobName,
 			JobArea:     tc58Job.JobArea,
 			Salary:      tc58Job.Salary,
@@ -234,6 +245,7 @@ func Search58DataByJob(c *gin.Context) {
 			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
+			IsFull:      tc58Job.IsFull,
 		})
 	}
 	c.JSON(http.StatusOK, All58Data{

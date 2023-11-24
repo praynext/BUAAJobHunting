@@ -16,10 +16,16 @@ func InitRoute() {
 	bossData := global.Router.Group("/boss_data")
 	bossData.GET("/company", SearchBossDataByCompany)
 	bossData.GET("/job", SearchBossDataByJob)
+	bossData.GET("/favorite", UserGetFavoriteBossData)
+	bossData.POST("/favorite", UserFavoriteBossData)
+	bossData.DELETE("/favorite", UserCancelFavoriteBossData)
 
 	tc58Data := global.Router.Group("/58_data")
 	tc58Data.GET("/company", Search58DataByCompany)
 	tc58Data.GET("/job", Search58DataByJob)
+	tc58Data.GET("/favorite", UserGetFavorite58Data)
+	tc58Data.POST("/favorite", UserFavorite58Data)
+	tc58Data.DELETE("/favorite", UserCancelFavorite58Data)
 
 	chat := global.Router.Group("/chat")
 	chat.GET("/ws", ServeWebsocket)
