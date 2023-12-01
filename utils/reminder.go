@@ -40,7 +40,7 @@ func SendEmailReminder(address string, message string) error {
 func CheckReminder() {
 	sqlString := `SELECT r.id, r.message, u.email from reminder r join "user" u on u.id = r.user_id WHERE r.time < $1 AND r.has_sent = false`
 	var reminderSends []ReminderSend
-	if err := global.Database.Select(&reminderSends, sqlString, time.Now().Local()); err != nil {
+	if err := global.Database.Select(&reminderSends, sqlString, time.Now().In(time.FixedZone("CST", 8*3600))); err != nil {
 		return
 	}
 	for _, reminderSend := range reminderSends {
