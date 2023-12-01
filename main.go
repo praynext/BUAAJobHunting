@@ -22,6 +22,7 @@ import (
 	"net/smtp"
 	"os"
 	"path"
+	"time"
 )
 
 func InitSql(Host string, Port int, User string, Password string, Database string) {
@@ -110,6 +111,8 @@ func LoadConfig() {
 	InitUpGrader()
 	InitCron()
 	docs.SwaggerInfo.BasePath = viper.GetString("DocsPath")
+	timeLocal, _ := time.LoadLocation("Asia/Beijing")
+	time.Local = timeLocal
 }
 
 // @title BUAAJobHunting Backend API
