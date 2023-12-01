@@ -29,4 +29,10 @@ func InitRoute() {
 
 	chat := global.Router.Group("/chat")
 	chat.GET("/ws", ServeWebsocket)
+
+	reminder := global.Router.Group("/reminder")
+	reminder.GET("/get", GetReminder)
+	reminder.POST("/add", AddReminder)
+	reminder.PUT("/update", UpdateReminder)
+	reminder.DELETE("/delete", DeleteReminder)
 }

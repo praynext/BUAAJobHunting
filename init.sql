@@ -81,21 +81,35 @@ create table user_favorite_58_data
     id         serial primary key,
     user_id    integer not null,
     data_id    integer not null,
-    created_at timestamp default now()
+    created_at timestamp default now(),
+    foreign key (user_id) references "user" (id)
 );
 
 alter table user_favorite_58_data
     owner to postgres;
-
 
 create table user_favorite_boss_data
 (
     id         serial primary key,
     user_id    integer not null,
     data_id    integer not null,
-    created_at timestamp default now()
+    created_at timestamp default now(),
+    foreign key (user_id) references "user" (id)
 );
 
 alter table user_favorite_boss_data
     owner to postgres;
 
+create table reminder
+(
+    id         serial primary key,
+    user_id    integer                 not null,
+    message    text,
+    time       timestamp               not null,
+    created_at timestamp default now(),
+    has_sent   boolean   default false not null,
+    foreign key (user_id) references "user" (id)
+);
+
+alter table reminder
+    owner to postgres;

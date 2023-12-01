@@ -4,6 +4,7 @@ import (
 	"BUAAJobHunting/api"
 	"BUAAJobHunting/docs"
 	"BUAAJobHunting/global"
+	"BUAAJobHunting/utils"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -11,6 +12,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
+	"github.com/robfig/cron/v3"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -79,6 +81,15 @@ func InitUpGrader() {
 	}
 }
 
+func InitCron() {
+	global.Cron = cron.New()
+	_, err := global.Cron.AddFunc("@every 1m", utils.CheckReminder)
+	if err != nil {
+		return
+	}
+	global.Cron.Start()
+}
+
 func LoadConfig() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -97,6 +108,7 @@ func LoadConfig() {
 	InitParser(viper.GetString("DictPath"))
 	InitDispatcher()
 	InitUpGrader()
+	InitCron()
 	docs.SwaggerInfo.BasePath = viper.GetString("DocsPath")
 }
 
