@@ -71,7 +71,7 @@ type AllMessageData struct {
 // @Router /chat/history [get]
 // @Security ApiKeyAuth
 func GetChatHistory(c *gin.Context) {
-	sqlString := `SELECT * FROM "message" WHERE ("from"=$1 AND "to"=$2) OR ("to"=$3 AND "from"=$4) ORDER BY time DESC`
+	sqlString := `SELECT * FROM "message" WHERE "has_sent"=true AND (("from"=$1 AND "to"=$2) OR ("to"=$3 AND "from"=$4)) ORDER BY time DESC`
 	if c.Query("offset") != "" {
 		sqlString += ` OFFSET ` + c.Query("offset")
 	}
