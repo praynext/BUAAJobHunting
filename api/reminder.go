@@ -51,7 +51,7 @@ func GetReminder(c *gin.Context) {
 			ReminderId: reminder.ID,
 			UserId:     reminder.UserId,
 			Message:    reminder.Message,
-			Time:       reminder.Time.Format("2006/01/02 15:4"),
+			Time:       reminder.Time.Format("2006/01/02 15:04"),
 			CreatedAt:  reminder.CreatedAt,
 			HasSent:    reminder.HasSent,
 		})
@@ -83,7 +83,7 @@ func AddReminder(c *gin.Context) {
 		c.String(http.StatusBadRequest, "请求解析失败")
 		return
 	}
-	formatTime, err := time.Parse("2006/01/02 15:4", addReminderRequest.Time)
+	formatTime, err := time.Parse("2006/01/02 15:04", addReminderRequest.Time)
 	if err != nil {
 		c.String(http.StatusBadRequest, "时间格式错误")
 		return
@@ -119,7 +119,7 @@ func UpdateReminder(c *gin.Context) {
 		c.String(http.StatusBadRequest, "请求解析失败")
 		return
 	}
-	formatTime, err := time.Parse("2006/01/02 15:4", updateReminderRequest.Time)
+	formatTime, err := time.Parse("2006/01/02 15:04", updateReminderRequest.Time)
 	if err != nil {
 		c.String(http.StatusBadRequest, "时间格式错误")
 		return
