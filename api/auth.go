@@ -276,3 +276,41 @@ func SendEmail(c *gin.Context) {
 		c.String(http.StatusBadRequest, "发送过于频繁")
 	}
 }
+
+type UserResponse struct {
+	UserId   int    `json:"user_id"`
+	UserName string `json:"user_name"`
+}
+
+type AllUserData struct {
+	TotalCount int            `json:"total_count"`
+	Users      []UserResponse `json:"users"`
+}
+
+// GetAllUser godoc
+// @Schemes http
+// @Description 获取所有用户信息
+// @Tags Authentication
+// @Success 200 {object} AllUserData "所有用户信息"
+// @Failure default {string} string "服务器错误"
+// @Router /all_user [get]
+// @Security ApiKeyAuth
+func GetAllUser(c *gin.Context) {
+	sqlString := `SELECT id, name FROM "user"`
+	var users []model.User
+	if err := global.Database.Select(&users, sqlString); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var userResponses []UserResponse
+	for _, user := range users {
+		userResponses = append(userResponses, UserResponse{
+			UserId:   user.ID,
+			UserName: user.Name,
+		})
+	}
+	c.JSON(http.StatusOK, AllUserData{
+		TotalCount: len(users),
+		Users:      userResponses,
+	})
+}

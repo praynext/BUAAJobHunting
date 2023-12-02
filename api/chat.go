@@ -33,7 +33,7 @@ func ServeWebsocket(c *gin.Context) {
 			From: msg.From,
 			To:   msg.To,
 			Msg:  msg.Msg,
-			Time: msg.Time,
+			Time: msg.Time.Format("2006/01/02 15:04:05"),
 		}
 		bytePayload, err := json.Marshal(payload)
 		if err != nil {
@@ -52,4 +52,49 @@ func ServeWebsocket(c *gin.Context) {
 
 	go client.WritePump()
 	go client.ReadPump()
+}
+
+type AllMessageData struct {
+	TotalCount int              `json:"total_count"`
+	Messages   []global.Message `json:"messages"`
+}
+
+// GetChatHistory godoc
+// @Schemes http
+// @Description 获取用户聊天记录
+// @Tags Chat
+// @Param user_id query int true "用户id"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "限制条数"
+// @Success 200 {object} AllMessageData "用户聊天记录"
+// @Failure default {string} string "服务器错误"
+// @Router /chat/history [get]
+// @Security ApiKeyAuth
+func GetChatHistory(c *gin.Context) {
+	sqlString := `SELECT * FROM "message" WHERE ("from"=$1 AND "to"=$2) OR ("to"=$3 AND "from"=$4) ORDER BY time DESC`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var messages []model.Message
+	if err := global.Database.Select(&messages, sqlString, c.Query("user_id"),
+		c.GetInt("UserId"), c.Query("user_id"), c.GetInt("UserId")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var messageResponse []global.Message
+	for _, msg := range messages {
+		messageResponse = append(messageResponse, global.Message{
+			From: msg.From,
+			To:   msg.To,
+			Msg:  msg.Msg,
+			Time: msg.Time.Format("2006/01/02 15:04:05"),
+		})
+	}
+	c.JSON(http.StatusOK, AllMessageData{
+		TotalCount: len(messageResponse),
+		Messages:   messageResponse,
+	})
 }

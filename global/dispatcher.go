@@ -15,10 +15,10 @@ type Hub struct {
 }
 
 type Message struct {
-	From int       `json:"from"`
-	To   int       `json:"to"`
-	Msg  string    `json:"msg"`
-	Time time.Time `json:"time"`
+	From int    `json:"from"`
+	To   int    `json:"to"`
+	Msg  string `json:"msg"`
+	Time string `json:"time"`
 }
 
 func NewHub() *Hub {
@@ -53,7 +53,7 @@ func (h *Hub) Dispatch(userId int, message []byte) {
 	if err := json.Unmarshal(message, &msg); err != nil || msg.From != userId {
 		return
 	}
-	msg.Time = time.Now()
+	msg.Time = time.Now().In(time.FixedZone("CST", 8*3600)).Format("2006/01/02 15:04:05")
 	byteMsg, err := json.Marshal(msg)
 	if err != nil {
 		log.Fatalf("Marshal messages failed: %v", err)

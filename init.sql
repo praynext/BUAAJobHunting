@@ -78,11 +78,12 @@ alter table message
 
 create table user_favorite_58_data
 (
-    id         serial primary key,
     user_id    integer not null,
     data_id    integer not null,
     created_at timestamp default now(),
-    foreign key (user_id) references "user" (id)
+    primary key (user_id, data_id),
+    foreign key (user_id) references "user" (id),
+    foreign key (data_id) references "58_data" (id)
 );
 
 alter table user_favorite_58_data
@@ -90,11 +91,12 @@ alter table user_favorite_58_data
 
 create table user_favorite_boss_data
 (
-    id         serial primary key,
     user_id    integer not null,
     data_id    integer not null,
     created_at timestamp default now(),
-    foreign key (user_id) references "user" (id)
+    primary key (user_id, data_id),
+    foreign key (user_id) references "user" (id),
+    foreign key (data_id) references boss_data (id)
 );
 
 alter table user_favorite_boss_data

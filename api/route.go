@@ -12,6 +12,7 @@ func InitRoute() {
 	global.Router.POST("/change_password", ChangePassword)
 	global.Router.POST("/reset_password", ResetPassword)
 	global.Router.POST("/send_email", SendEmail)
+	global.Router.GET("/all_user", GetAllUser)
 
 	bossData := global.Router.Group("/boss_data")
 	bossData.GET("/company", SearchBossDataByCompany)
@@ -29,6 +30,7 @@ func InitRoute() {
 
 	chat := global.Router.Group("/chat")
 	chat.GET("/ws", ServeWebsocket)
+	chat.GET("/history", GetChatHistory)
 
 	reminder := global.Router.Group("/reminder")
 	reminder.GET("/get", GetReminder)
