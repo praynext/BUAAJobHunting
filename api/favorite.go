@@ -17,6 +17,7 @@ import (
 // @Success 200 {string} string "收藏成功"
 // @Failure default {string} string "服务器错误"
 // @Router /58_data/favorite [post]
+// @Security ApiKeyAuth
 func UserFavorite58Data(c *gin.Context) {
 	sqlString := `INSERT INTO user_favorite_58_data (user_id, data_id, created_at) VALUES ($1, $2, $3)`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id"), time.Now().Local()); err != nil {
@@ -34,6 +35,7 @@ func UserFavorite58Data(c *gin.Context) {
 // @Success 200 {string} string "收藏成功"
 // @Failure default {string} string "服务器错误"
 // @Router /boss_data/favorite [post]
+// @Security ApiKeyAuth
 func UserFavoriteBossData(c *gin.Context) {
 	sqlString := `INSERT INTO user_favorite_boss_data (user_id, data_id, created_at) VALUES ($1, $2, $3)`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id"), time.Now().Local()); err != nil {
@@ -51,6 +53,7 @@ func UserFavoriteBossData(c *gin.Context) {
 // @Success 200 {string} string "取消收藏成功"
 // @Failure default {string} string "服务器错误"
 // @Router /58_data/favorite [delete]
+// @Security ApiKeyAuth
 func UserCancelFavorite58Data(c *gin.Context) {
 	sqlString := `DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
@@ -68,6 +71,7 @@ func UserCancelFavorite58Data(c *gin.Context) {
 // @Success 200 {string} string "取消收藏成功"
 // @Failure default {string} string "服务器错误"
 // @Router /boss_data/favorite [delete]
+// @Security ApiKeyAuth
 func UserCancelFavoriteBossData(c *gin.Context) {
 	sqlString := `DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
@@ -86,6 +90,7 @@ func UserCancelFavoriteBossData(c *gin.Context) {
 // @Success 200 {object} All58Data "58同城数据"
 // @Failure default {string} string "服务器错误"
 // @Router /58_data/favorite [get]
+// @Security ApiKeyAuth
 func UserGetFavorite58Data(c *gin.Context) {
 	sqlString := `
 		SELECT * FROM "58_data" 
@@ -134,6 +139,7 @@ func UserGetFavorite58Data(c *gin.Context) {
 // @Success 200 {object} AllBossData "Boss直聘数据"
 // @Failure default {string} string "服务器错误"
 // @Router /boss_data/favorite [get]
+// @Security ApiKeyAuth
 func UserGetFavoriteBossData(c *gin.Context) {
 	sqlString := `
 		SELECT * FROM "boss_data" 
