@@ -87,6 +87,10 @@ func InitCron() {
 	if err != nil {
 		return
 	}
+	_, err = global.Cron.AddFunc("@every 1m", utils.CheckChat)
+	if err != nil {
+		return
+	}
 	global.Cron.Start()
 }
 

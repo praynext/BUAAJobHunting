@@ -25,6 +25,7 @@ type BossJobResponse struct {
 	JobURL         string    `json:"job_url"`
 	CreatedAt      time.Time `json:"created_at"`
 	IsFull         bool      `json:"is_full"`
+	IsFavor        bool      `json:"is_favor"`
 }
 
 type AllBossData struct {
@@ -61,6 +62,12 @@ func SearchBossDataByCompany(c *gin.Context) {
 	}
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
+		sqlString = `SELECT count() FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), bossJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
 		jobs = append(jobs, BossJobResponse{
 			JobId:          bossJob.ID,
 			JobName:        bossJob.JobName,
@@ -77,6 +84,7 @@ func SearchBossDataByCompany(c *gin.Context) {
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
 			IsFull:         bossJob.IsFull,
+			IsFavor:        isFavor == 1,
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
@@ -115,6 +123,12 @@ func SearchBossDataByJob(c *gin.Context) {
 	}
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
+		sqlString = `SELECT count() FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), bossJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
 		jobs = append(jobs, BossJobResponse{
 			JobId:          bossJob.ID,
 			JobName:        bossJob.JobName,
@@ -131,6 +145,64 @@ func SearchBossDataByJob(c *gin.Context) {
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
 			IsFull:         bossJob.IsFull,
+			IsFavor:        isFavor == 1,
+		})
+	}
+	c.JSON(http.StatusOK, AllBossData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// SearchBossDataByRandom godoc
+// @Schemes http
+// @Description 随机搜索Boss直聘数据
+// @Tags Search
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} AllBossData "Boss直聘数据"
+// @Failure default {string} string "服务器错误"
+// @Router /boss_data/random [get]
+// @Security ApiKeyAuth
+func SearchBossDataByRandom(c *gin.Context) {
+	sqlString := `SELECT * FROM boss_data WHERE job_area LIKE $1 ORDER BY random()`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var bossJobs []model.BossJob
+	if err := global.Database.Select(&bossJobs, sqlString, "%"+c.Query("area")+"%"); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []BossJobResponse
+	for _, bossJob := range bossJobs {
+		sqlString = `SELECT count(*) FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), bossJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
+		jobs = append(jobs, BossJobResponse{
+			JobId:          bossJob.ID,
+			JobName:        bossJob.JobName,
+			JobArea:        bossJob.JobArea,
+			Salary:         bossJob.Salary,
+			TagList:        strings.Split(bossJob.TagList, " "),
+			HRInfo:         strings.Split(bossJob.HRInfo, " "),
+			CompanyLogo:    bossJob.CompanyLogo,
+			CompanyName:    bossJob.CompanyName,
+			CompanyTagList: strings.Split(bossJob.CompanyTagList, " "),
+			CompanyURL:     bossJob.CompanyURL,
+			JobNeed:        strings.Split(bossJob.JobNeed, " "),
+			JobDesc:        bossJob.JobDesc,
+			JobURL:         bossJob.JobURL,
+			CreatedAt:      bossJob.CreatedAt,
+			IsFull:         bossJob.IsFull,
+			IsFavor:        isFavor == 1,
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
@@ -150,6 +222,7 @@ type TC58JobResponse struct {
 	JobURL      string    `json:"job_url"`
 	CreatedAt   time.Time `json:"created_at"`
 	IsFull      bool      `json:"is_full"`
+	IsFavor     bool      `json:"is_favor"`
 }
 
 type All58Data struct {
@@ -186,6 +259,12 @@ func Search58DataByCompany(c *gin.Context) {
 	}
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
+		sqlString = `SELECT count() FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), tc58Job.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
 		jobs = append(jobs, TC58JobResponse{
 			JobId:       tc58Job.ID,
 			JobName:     tc58Job.JobName,
@@ -197,6 +276,7 @@ func Search58DataByCompany(c *gin.Context) {
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
 			IsFull:      tc58Job.IsFull,
+			IsFavor:     isFavor == 1,
 		})
 	}
 	c.JSON(http.StatusOK, All58Data{
@@ -235,6 +315,12 @@ func Search58DataByJob(c *gin.Context) {
 	}
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
+		sqlString = `SELECT count() FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), tc58Job.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
 		jobs = append(jobs, TC58JobResponse{
 			JobId:       tc58Job.ID,
 			JobName:     tc58Job.JobName,
@@ -246,6 +332,59 @@ func Search58DataByJob(c *gin.Context) {
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
 			IsFull:      tc58Job.IsFull,
+			IsFavor:     isFavor == 1,
+		})
+	}
+	c.JSON(http.StatusOK, All58Data{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// Search58DataByRandom godoc
+// @Schemes http
+// @Description 随机搜索58同城数据
+// @Tags Search
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} All58Data "58同城数据"
+// @Failure default {string} string "服务器错误"
+// @Router /58_data/random [get]
+// @Security ApiKeyAuth
+func Search58DataByRandom(c *gin.Context) {
+	sqlString := `SELECT * FROM "58_data" WHERE job_area LIKE $1 ORDER BY random()`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var tc58Jobs []model.TC58Job
+	if err := global.Database.Select(&tc58Jobs, sqlString, "%"+c.Query("area")+"%"); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []TC58JobResponse
+	for _, tc58Job := range tc58Jobs {
+		sqlString = `SELECT count(*) FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), tc58Job.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
+		jobs = append(jobs, TC58JobResponse{
+			JobId:       tc58Job.ID,
+			JobName:     tc58Job.JobName,
+			JobArea:     tc58Job.JobArea,
+			Salary:      tc58Job.Salary,
+			JobWel:      strings.Split(tc58Job.JobWel, " "),
+			CompanyName: tc58Job.CompanyName,
+			JobNeed:     strings.Split(tc58Job.JobNeed, " "),
+			JobURL:      tc58Job.JobURL,
+			CreatedAt:   tc58Job.CreatedAt,
+			IsFull:      tc58Job.IsFull,
+			IsFavor:     isFavor == 1,
 		})
 	}
 	c.JSON(http.StatusOK, All58Data{

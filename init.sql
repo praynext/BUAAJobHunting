@@ -115,3 +115,14 @@ create table reminder
 
 alter table reminder
     owner to postgres;
+
+create table last_chat
+(
+    "from" integer   not null,
+    "to"   integer   not null,
+    time   timestamp not null,
+    primary key ("from", "to")
+);
+
+alter table last_chat
+    owner to postgres;

@@ -122,6 +122,7 @@ func UserGetFavorite58Data(c *gin.Context) {
 			JobURL:      tc58Job.JobURL,
 			CreatedAt:   tc58Job.CreatedAt,
 			IsFull:      tc58Job.IsFull,
+			IsFavor:     true,
 		})
 	}
 	c.JSON(http.StatusOK, All58Data{
@@ -176,6 +177,7 @@ func UserGetFavoriteBossData(c *gin.Context) {
 			JobURL:         bossJob.JobURL,
 			CreatedAt:      bossJob.CreatedAt,
 			IsFull:         bossJob.IsFull,
+			IsFavor:        true,
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
