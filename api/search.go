@@ -62,7 +62,7 @@ func SearchBossDataByCompany(c *gin.Context) {
 	}
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
-		sqlString = `SELECT count() FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
+		sqlString = `SELECT count(*) FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
 		var isFavor int
 		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), bossJob.ID); err != nil {
 			c.String(http.StatusInternalServerError, "服务器错误")
@@ -123,7 +123,7 @@ func SearchBossDataByJob(c *gin.Context) {
 	}
 	var jobs []BossJobResponse
 	for _, bossJob := range bossJobs {
-		sqlString = `SELECT count() FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
+		sqlString = `SELECT count(*) FROM user_favorite_boss_data WHERE user_id = $1 AND data_id = $2`
 		var isFavor int
 		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), bossJob.ID); err != nil {
 			c.String(http.StatusInternalServerError, "服务器错误")
@@ -259,7 +259,7 @@ func Search58DataByCompany(c *gin.Context) {
 	}
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
-		sqlString = `SELECT count() FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
+		sqlString = `SELECT count(*) FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
 		var isFavor int
 		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), tc58Job.ID); err != nil {
 			c.String(http.StatusInternalServerError, "服务器错误")
@@ -315,7 +315,7 @@ func Search58DataByJob(c *gin.Context) {
 	}
 	var jobs []TC58JobResponse
 	for _, tc58Job := range tc58Jobs {
-		sqlString = `SELECT count() FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
+		sqlString = `SELECT count(*) FROM user_favorite_58_data WHERE user_id = $1 AND data_id = $2`
 		var isFavor int
 		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), tc58Job.ID); err != nil {
 			c.String(http.StatusInternalServerError, "服务器错误")
