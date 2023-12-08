@@ -63,6 +63,27 @@ create index "58_tokens_idx" on "58_data" using GIN (tokens);
 alter table "58_data"
     owner to postgres;
 
+create table if not exists other_data
+(
+    id           serial primary key,
+    job_src      varchar(255)                 not null,
+    job_name     varchar(255)                 not null,
+    job_area     varchar(255)                 not null,
+    salary       varchar(255)                 not null,
+    company_name varchar(255)                 not null,
+    job_need     varchar(255)                 not null,
+    job_desc     varchar(255)                 not null,
+    job_url      varchar(2048)                not null,
+    created_at   timestamp                    not null,
+    is_full      bool default random() < 0.25 not null,
+    tokens       tsvector                     not null
+);
+create index other_company_idx on other_data using GIN (company_name gin_trgm_ops);
+create index other_tokens_idx on other_data using GIN (tokens);
+
+alter table other_data
+    owner to postgres;
+
 create table message
 (
     id       serial primary key,
@@ -100,6 +121,19 @@ create table user_favorite_boss_data
 );
 
 alter table user_favorite_boss_data
+    owner to postgres;
+
+create table user_favorite_other_data
+(
+    user_id    integer not null,
+    data_id    integer not null,
+    created_at timestamp default now(),
+    primary key (user_id, data_id),
+    foreign key (user_id) references "user" (id),
+    foreign key (data_id) references other_data (id)
+);
+
+alter table user_favorite_other_data
     owner to postgres;
 
 create table reminder

@@ -30,6 +30,14 @@ func InitRoute() {
 	tc58Data.POST("/favorite", UserFavorite58Data)
 	tc58Data.DELETE("/favorite", UserCancelFavorite58Data)
 
+	otherData := global.Router.Group("/other_data")
+	otherData.GET("/company", SearchOtherDataByCompany)
+	otherData.GET("/job", SearchOtherDataByJob)
+	otherData.GET("/random", SearchOtherDataByRandom)
+	otherData.GET("/favorite", UserGetFavoriteOtherData)
+	otherData.POST("/favorite", UserFavoriteOtherData)
+	otherData.DELETE("/favorite", UserCancelFavoriteOtherData)
+
 	chat := global.Router.Group("/chat")
 	chat.GET("/ws", ServeWebsocket)
 	chat.GET("/history", GetChatHistory)

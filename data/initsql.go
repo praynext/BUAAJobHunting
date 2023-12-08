@@ -11,6 +11,7 @@ import (
 	"github.com/yanyiwu/gojieba"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 	"time"
@@ -160,6 +161,169 @@ func Init58Token() {
 	bar.Finish()
 }
 
+func LoadKZData() {
+	fileName := "./data/kanzhun.csv"
+	fs, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer func(fs *os.File) {
+		err := fs.Close()
+		if err != nil {
+			log.Fatalf("can not close, err is %+v", err)
+		}
+	}(fs)
+	r := csv.NewReader(fs)
+	for {
+		row, err := r.Read()
+		for i := 0; i < len(row); i++ {
+			row[i] = strings.TrimSpace(row[i])
+		}
+		if err != nil && err != io.EOF {
+			log.Fatalf("can not read, err is %+v", err)
+		}
+		if err == io.EOF {
+			break
+		}
+		sqlString := `INSERT INTO other_data (job_src, job_name, job_area, salary, company_name, job_need, 
+            job_desc, job_url, created_at, tokens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		if _, err := DB.Exec(sqlString, "看准网", row[0], row[9], row[1], row[5], row[2],
+			row[7]+" "+row[8], row[10], time.Now().Local(), ""); err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finish loading " + fileName)
+}
+
+func LoadLGData() {
+	fileName := "./data/lagou.csv"
+	fs, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer func(fs *os.File) {
+		err := fs.Close()
+		if err != nil {
+			log.Fatalf("can not close, err is %+v", err)
+		}
+	}(fs)
+	r := csv.NewReader(fs)
+	for {
+		row, err := r.Read()
+		for i := 0; i < len(row); i++ {
+			row[i] = strings.TrimSpace(row[i])
+		}
+		if err != nil && err != io.EOF {
+			log.Fatalf("can not read, err is %+v", err)
+		}
+		if err == io.EOF {
+			break
+		}
+		sqlString := `INSERT INTO other_data (job_src, job_name, job_area, salary, company_name, job_need, 
+            job_desc, job_url, created_at, tokens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		if _, err := DB.Exec(sqlString, "拉钩招聘", row[0], row[1], row[2], row[4], row[3],
+			row[5], "https://www.lagou.com/jobs/list_"+row[0], time.Now().Local(), ""); err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finish loading " + fileName)
+}
+
+func LoadWYData() {
+	fileName := "./data/wuyou.csv"
+	fs, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer func(fs *os.File) {
+		err := fs.Close()
+		if err != nil {
+			log.Fatalf("can not close, err is %+v", err)
+		}
+	}(fs)
+	r := csv.NewReader(fs)
+	for {
+		row, err := r.Read()
+		for i := 0; i < len(row); i++ {
+			row[i] = strings.TrimSpace(row[i])
+		}
+		if err != nil && err != io.EOF {
+			log.Fatalf("can not read, err is %+v", err)
+		}
+		if err == io.EOF {
+			break
+		}
+		jobNeedFirst := []string{"不限", "1-3年", "3-5年", "5-10年"}
+		jobNeedSecond := []string{"大专", "本科", "硕士", "博士"}
+		jobNeed := jobNeedFirst[rand.Intn(4)] + " / " + jobNeedSecond[rand.Intn(4)]
+		sqlString := `INSERT INTO other_data (job_src, job_name, job_area, salary, company_name, job_need, 
+            job_desc, job_url, created_at, tokens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		if _, err := DB.Exec(sqlString, "前程无忧", row[0], row[2], row[1], row[3], jobNeed,
+			row[4], row[5], time.Now().Local(), ""); err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finish loading " + fileName)
+}
+
+func LoadZLData() {
+	fileName := "./data/zhilian.csv"
+	fs, err := os.Open(fileName)
+	if err != nil {
+		panic(err)
+	}
+	defer func(fs *os.File) {
+		err := fs.Close()
+		if err != nil {
+			log.Fatalf("can not close, err is %+v", err)
+		}
+	}(fs)
+	r := csv.NewReader(fs)
+	for {
+		row, err := r.Read()
+		for i := 0; i < len(row); i++ {
+			row[i] = strings.TrimSpace(row[i])
+		}
+		if err != nil && err != io.EOF {
+			log.Fatalf("can not read, err is %+v", err)
+		}
+		if err == io.EOF {
+			break
+		}
+		sqlString := `INSERT INTO other_data (job_src, job_name, job_area, salary, company_name, job_need, 
+            job_desc, job_url, created_at, tokens) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
+		if _, err := DB.Exec(sqlString, "智联招聘", row[0], row[2], row[1], row[4], row[3],
+			row[5], row[6], time.Now().Local(), ""); err != nil {
+			panic(err)
+		}
+	}
+	fmt.Println("Finish loading " + fileName)
+}
+
+func InitOtherToken() {
+	sqlString := `SELECT * FROM other_data`
+	var otherJobs []model.OtherJob
+	if err := DB.Select(&otherJobs, sqlString); err != nil {
+		panic(err)
+	}
+	x := gojieba.NewJieba()
+	defer x.Free()
+	var jobNameWords []string
+	var jobNeedWords []string
+	var jobDescWords []string
+	for _, otherJob := range otherJobs {
+		jobNameWords = x.CutForSearch(otherJob.JobName, true)
+		jobNeedWords = x.CutForSearch(otherJob.JobNeed, true)
+		jobDescWords = x.CutForSearch(otherJob.JobDesc, true)
+		sqlString = `UPDATE other_data SET tokens = setweight(to_tsvector('simple', $1), 'A') || 
+            setweight(to_tsvector('simple', $2), 'B') || setweight(to_tsvector('simple', $3), 'C') WHERE id = $4`
+		if _, err := DB.Exec(sqlString, strings.Join(jobNameWords, " "), strings.Join(jobDescWords, " "),
+			strings.Join(jobNeedWords, " "), otherJob.ID); err != nil {
+			panic(err)
+		}
+	}
+}
+
 func main() {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -175,4 +339,9 @@ func main() {
 	InitBossToken()
 	Load58Data()
 	Init58Token()
+	LoadKZData()
+	LoadLGData()
+	LoadWYData()
+	LoadZLData()
+	InitOtherToken()
 }

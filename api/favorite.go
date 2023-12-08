@@ -45,6 +45,24 @@ func UserFavoriteBossData(c *gin.Context) {
 	c.String(http.StatusOK, "收藏成功")
 }
 
+// UserFavoriteOtherData godoc
+// @Schemes http
+// @Description 用户收藏其他数据
+// @Tags Favorite
+// @Param id query int true "其他数据ID"
+// @Success 200 {string} string "收藏成功"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/favorite [post]
+// @Security ApiKeyAuth
+func UserFavoriteOtherData(c *gin.Context) {
+	sqlString := `INSERT INTO user_favorite_other_data (user_id, data_id, created_at) VALUES ($1, $2, $3)`
+	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id"), time.Now().Local()); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	c.String(http.StatusOK, "收藏成功")
+}
+
 // UserCancelFavorite58Data godoc
 // @Schemes http
 // @Description 用户取消收藏58同城数据
@@ -74,6 +92,24 @@ func UserCancelFavorite58Data(c *gin.Context) {
 // @Security ApiKeyAuth
 func UserCancelFavoriteBossData(c *gin.Context) {
 	sqlString := `DELETE FROM user_favorite_58_data WHERE user_id=$1 AND data_id=$2`
+	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	c.String(http.StatusOK, "取消收藏成功")
+}
+
+// UserCancelFavoriteOtherData godoc
+// @Schemes http
+// @Description 用户取消收藏其他数据
+// @Tags Favorite
+// @Param id query int true "其他数据ID"
+// @Success 200 {string} string "取消收藏成功"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/favorite [delete]
+// @Security ApiKeyAuth
+func UserCancelFavoriteOtherData(c *gin.Context) {
+	sqlString := `DELETE FROM user_favorite_other_data WHERE user_id=$1 AND data_id=$2`
 	if _, err := global.Database.Exec(sqlString, c.GetInt("UserId"), c.Query("id")); err != nil {
 		c.String(http.StatusInternalServerError, "服务器错误")
 		return
@@ -181,6 +217,57 @@ func UserGetFavoriteBossData(c *gin.Context) {
 		})
 	}
 	c.JSON(http.StatusOK, AllBossData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// UserGetFavoriteOtherData godoc
+// @Schemes http
+// @Description 用户获取收藏的其他数据
+// @Tags Favorite
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} AllOtherData "58同城数据"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/favorite [get]
+// @Security ApiKeyAuth
+func UserGetFavoriteOtherData(c *gin.Context) {
+	sqlString := `
+		SELECT * FROM other_data 
+		WHERE id IN (
+			SELECT data_id FROM user_favorite_other_data WHERE user_id=$1
+		)
+	`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var otherJobs []model.OtherJob
+	if err := global.Database.Select(&otherJobs, sqlString, c.GetInt("UserId")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []OtherJobResponse
+	for _, otherJob := range otherJobs {
+		jobs = append(jobs, OtherJobResponse{
+			JobId:       otherJob.ID,
+			JobSRC:      otherJob.JobSRC,
+			JobName:     otherJob.JobName,
+			JobArea:     otherJob.JobArea,
+			Salary:      otherJob.Salary,
+			CompanyName: otherJob.CompanyName,
+			JobNeed:     otherJob.JobNeed,
+			JobDesc:     otherJob.JobDesc,
+			JobURL:      otherJob.JobURL,
+			CreatedAt:   otherJob.CreatedAt,
+			IsFull:      otherJob.IsFull,
+			IsFavor:     true,
+		})
+	}
+	c.JSON(http.StatusOK, AllOtherData{
 		TotalCount: len(jobs),
 		Jobs:       jobs,
 	})

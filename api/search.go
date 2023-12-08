@@ -392,3 +392,189 @@ func Search58DataByRandom(c *gin.Context) {
 		Jobs:       jobs,
 	})
 }
+
+type OtherJobResponse struct {
+	JobId       int       `json:"job_id"`
+	JobSRC      string    `json:"job_src"`
+	JobName     string    `json:"job_name"`
+	JobArea     string    `json:"job_area"`
+	Salary      string    `json:"salary"`
+	CompanyName string    `json:"company_name"`
+	JobNeed     string    `json:"job_need"`
+	JobDesc     string    `json:"job_desc"`
+	JobURL      string    `json:"job_url"`
+	CreatedAt   time.Time `json:"created_at"`
+	IsFull      bool      `json:"is_full"`
+	IsFavor     bool      `json:"is_favor"`
+}
+
+type AllOtherData struct {
+	TotalCount int                `json:"total_count"`
+	Jobs       []OtherJobResponse `json:"jobs"`
+}
+
+// SearchOtherDataByCompany godoc
+// @Schemes http
+// @Description 根据公司搜索其他数据
+// @Tags Search
+// @Param info query string true "用户搜索信息"
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} AllOtherData "其他数据"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/company [get]
+// @Security ApiKeyAuth
+func SearchOtherDataByCompany(c *gin.Context) {
+	sqlString := `SELECT * FROM other_data WHERE similarity($1, company_name) > 0.1 
+        AND job_area LIKE $2 ORDER BY similarity($3, company_name) DESC, created_at DESC`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var otherJobs []model.OtherJob
+	if err := global.Database.Select(&otherJobs, sqlString, c.Query("info"),
+		"%"+c.Query("area")+"%", c.Query("info")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []OtherJobResponse
+	for _, otherJob := range otherJobs {
+		sqlString = `SELECT count(*) FROM user_favorite_other_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), otherJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
+		jobs = append(jobs, OtherJobResponse{
+			JobId:       otherJob.ID,
+			JobSRC:      otherJob.JobSRC,
+			JobName:     otherJob.JobName,
+			JobArea:     otherJob.JobArea,
+			Salary:      otherJob.Salary,
+			CompanyName: otherJob.CompanyName,
+			JobNeed:     otherJob.JobNeed,
+			JobDesc:     otherJob.JobDesc,
+			JobURL:      otherJob.JobURL,
+			CreatedAt:   otherJob.CreatedAt,
+			IsFull:      otherJob.IsFull,
+			IsFavor:     isFavor == 1,
+		})
+	}
+	c.JSON(http.StatusOK, AllOtherData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// SearchOtherDataByJob godoc
+// @Schemes http
+// @Description 根据工作搜索其他数据
+// @Tags Search
+// @Param info query string true "用户搜索信息"
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} AllOtherData "其他数据"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/job [get]
+// @Security ApiKeyAuth
+func SearchOtherDataByJob(c *gin.Context) {
+	sqlString := `SELECT * FROM other_data WHERE tokens @@ to_tsquery('simple', $1) AND job_area 
+    	LIKE $2 ORDER BY ts_rank(tokens, to_tsquery('simple', $3)) DESC, created_at DESC`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	queryWords := global.Parser.Cut(c.Query("info"), true)
+	var otherJobs []model.OtherJob
+	if err := global.Database.Select(&otherJobs, sqlString, strings.Join(queryWords, " | "),
+		"%"+c.Query("area")+"%", strings.Join(queryWords, " | ")); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []OtherJobResponse
+	for _, otherJob := range otherJobs {
+		sqlString = `SELECT count(*) FROM user_favorite_other_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), otherJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
+		jobs = append(jobs, OtherJobResponse{
+			JobId:       otherJob.ID,
+			JobSRC:      otherJob.JobSRC,
+			JobName:     otherJob.JobName,
+			JobArea:     otherJob.JobArea,
+			Salary:      otherJob.Salary,
+			CompanyName: otherJob.CompanyName,
+			JobNeed:     otherJob.JobNeed,
+			JobDesc:     otherJob.JobDesc,
+			JobURL:      otherJob.JobURL,
+			CreatedAt:   otherJob.CreatedAt,
+			IsFull:      otherJob.IsFull,
+			IsFavor:     isFavor == 1,
+		})
+	}
+	c.JSON(http.StatusOK, AllOtherData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
+
+// SearchOtherDataByRandom godoc
+// @Schemes http
+// @Description 随机搜索其他数据
+// @Tags Search
+// @Param area query string false "地区"
+// @Param offset query int false "偏移量"
+// @Param limit query int false "数量"
+// @Success 200 {object} AllOtherData "其他数据"
+// @Failure default {string} string "服务器错误"
+// @Router /other_data/random [get]
+// @Security ApiKeyAuth
+func SearchOtherDataByRandom(c *gin.Context) {
+	sqlString := `SELECT * FROM other_data WHERE job_area LIKE $1 ORDER BY random()`
+	if c.Query("offset") != "" {
+		sqlString += ` OFFSET ` + c.Query("offset")
+	}
+	if c.Query("limit") != "" {
+		sqlString += ` LIMIT ` + c.Query("limit")
+	}
+	var otherJobs []model.OtherJob
+	if err := global.Database.Select(&otherJobs, sqlString, "%"+c.Query("area")+"%"); err != nil {
+		c.String(http.StatusInternalServerError, "服务器错误")
+		return
+	}
+	var jobs []OtherJobResponse
+	for _, otherJob := range otherJobs {
+		sqlString = `SELECT count(*) FROM user_favorite_other_data WHERE user_id = $1 AND data_id = $2`
+		var isFavor int
+		if err := global.Database.Get(&isFavor, sqlString, c.GetInt("UserId"), otherJob.ID); err != nil {
+			c.String(http.StatusInternalServerError, "服务器错误")
+			return
+		}
+		jobs = append(jobs, OtherJobResponse{
+			JobId:       otherJob.ID,
+			JobSRC:      otherJob.JobSRC,
+			JobName:     otherJob.JobName,
+			JobArea:     otherJob.JobArea,
+			Salary:      otherJob.Salary,
+			CompanyName: otherJob.CompanyName,
+			JobNeed:     otherJob.JobNeed,
+			JobDesc:     otherJob.JobDesc,
+			JobURL:      otherJob.JobURL,
+			CreatedAt:   otherJob.CreatedAt,
+			IsFull:      otherJob.IsFull,
+			IsFavor:     isFavor == 1,
+		})
+	}
+	c.JSON(http.StatusOK, AllOtherData{
+		TotalCount: len(jobs),
+		Jobs:       jobs,
+	})
+}
