@@ -3,7 +3,6 @@ package api
 import (
 	"BUAAJobHunting/global"
 	"BUAAJobHunting/model"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
@@ -29,19 +28,6 @@ func ServeWebsocket(c *gin.Context) {
 		return
 	}
 	for _, msg := range messages {
-		payload := global.Message{
-			From: msg.From,
-			To:   msg.To,
-			Msg:  msg.Msg,
-			Time: msg.Time.Format("2006/01/02 15:04:05"),
-		}
-		bytePayload, err := json.Marshal(payload)
-		if err != nil {
-			log.Fatalf("Marshal messages failed: %v", err)
-			return
-		}
-		client.Send <- bytePayload
-
 		// Save msg into database, setting has_sent true
 		_, err = global.Database.Exec(`UPDATE "message" SET has_sent=true WHERE "from"=$1 AND "to"=$2 AND message=$3`, msg.From, client.UserId, msg.Msg)
 		if err != nil {
@@ -71,7 +57,7 @@ type AllMessageData struct {
 // @Router /chat/history [get]
 // @Security ApiKeyAuth
 func GetChatHistory(c *gin.Context) {
-	sqlString := `SELECT * FROM "message" WHERE "has_sent"=true AND (("from"=$1 AND "to"=$2) OR ("to"=$3 AND "from"=$4)) ORDER BY time DESC`
+	sqlString := `SELECT * FROM "message" WHERE ("from"=$1 AND "to"=$2) OR ("to"=$3 AND "from"=$4) ORDER BY time DESC`
 	if c.Query("offset") != "" {
 		sqlString += ` OFFSET ` + c.Query("offset")
 	}
